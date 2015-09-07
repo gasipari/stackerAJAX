@@ -44,3 +44,12 @@
 	background-color: #F78181;
 	padding: 1em;
 }
+
+.answerer-img {
+	float: right;
+}
+
+.answerer-img img {
+	width: 60px;
+	height: 60px;
+}

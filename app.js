@@ -6,6 +6,16 @@ $(document).ready( function() {
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
 	});
+
+	// submit event listener for inspiration-getter form
+	$('.inspiration-getter').submit(function(event){
+		// zero out results if previous search has run
+		$('.results').html('');
+		// get the value of the tags the user submitted
+		var tags = $(this).find("input[name='answerers']").val();
+		getTopAnswerers(tags);
+		console.log('get inspiration-getter'+tags);
+	})
 });
 
 // this function takes the question object returned by StackOverflow 
@@ -86,6 +96,69 @@ var getUnanswered = function(tags) {
 		var errorElem = showError(error);
 		$('.search-results').append(errorElem);
 	});
+};
+
+//
+var getTopAnswerers = function(tags) {
+	
+	// the parameters we need to pass in our request to StackOverflow's API
+	var request = { site: 'stackoverflow', order: 'desc', sort: 'creation'};
+	
+	var result = $.ajax({
+		url: "http://api.stackexchange.com/2.2/tags/"+tags+"/top-answerers/all_time",
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+		})
+	.done(function(result){
+		console.log(result);
+		var searchResults = showSearchResults(tags, result.items.length);
+		$('.search-results').html(searchResults);
+		
+		$.each(result.items, function(i, item) {
+			var answerer = showAnswerer(item);
+			$('.results').append(answerer);
+		});
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+};
+
+// this function takes the answerer object returned by StackOverflow 
+// and creates new result to be appended to DOM
+var showAnswerer = function(answerer) {
+	
+	// clone our result template code
+	var result = $('.templates .answerer').clone();
+	
+	// Set the question properties in result
+	var answererElem = result.find('.answerer-text a');
+	answererElem.attr('href', answerer.user.link);
+	answererElem.text(answerer.user.display_name);
+	// user profile image
+	var answererElemImgURL = result.find('.answerer-img a');
+	answererElemImgURL.attr('href', answerer.user.link);
+	var answererElemImg = result.find('.answerer-img a img');
+	answererElemImg.attr('src', answerer.user.profile_image);
+	// user details
+	var answererElemType = result.find('.user-type');
+	answererElemType.text(answerer.user.user_type);
+
+	var answererElemAcceptRate = result.find('.accept-rate');
+	answererElemAcceptRate.text(answerer.user.accept_rate);
+
+	var answererElemPostCount = result.find('.post-count');
+	answererElemPostCount.text(answerer.post_count);
+
+	var answererElemReputation = result.find('.reputation');
+	answererElemReputation.text(answerer.user.reputation);
+
+	var answererElemScore = result.find('.score');
+	answererElemScore.text(answerer.score);
+
+	return result;
 };
 
 
